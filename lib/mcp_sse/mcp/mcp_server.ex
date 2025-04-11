@@ -5,7 +5,7 @@ defmodule MCPServer do
 
   ## Example
 
-      defmodule YourApp.MCPServer do
+      defmodule YourApp.YourMCPServer do
         use MCPServer
         require Logger
 

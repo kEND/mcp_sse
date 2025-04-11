@@ -1,7 +1,7 @@
 defmodule MCP.DefaultServer do
   @moduledoc false
 
-  # Default implementation of MCP Server Behaviour.
+  # Default implementation of the MCPServer behaviour.
   # Provides basic functionality and stubs for optional callbacks.
   use MCPServer
 
