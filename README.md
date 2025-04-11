@@ -12,6 +12,24 @@ This library provides a simple implementation of the Model Context Protocol (MCP
 For more information about the Model Context Protocol, visit:
 [Model Context Protocol Documentation](https://modelcontextprotocol.io/introduction)
 
+## Table of Contents
+
+- [Features](#features)
+- [Create your own MCP server](#create-your-own-mcp-server)
+- [Installation](#installation)
+  - [For Phoenix Applications](#for-phoenix-applications)
+  - [For Plug Applications with Bandit](#for-plug-applications-with-bandit)
+- [Usage](#usage)
+  - [For Cursor](#for-cursor)
+- [Configuration Options](#configuration-options)
+- [Quick Demo](#quick-demo)
+- [Other Notes](#other-notes)
+  - [Example Client Usage](#example-client-usage)
+  - [Session Management](#session-management)
+  - [SSE Keepalive](#sse-keepalive)
+  - [MCP Response Formatting](#mcp-response-formatting)
+- [Contributing](#contributing)
+
 ## Features
 
 - Full MCP server implementation
