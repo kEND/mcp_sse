@@ -1,15 +1,41 @@
 # MCP over SSE
 
-[![Module Version](https://img.shields.io/hexpm/v/mcp_sse.svg)](https://github.com/kEND/mcp_sse/tags)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-purple.svg)](https://hexdocs.pm/mcp_sse/)
-[![Total Download](https://img.shields.io/hexpm/dt/mcp_sse.svg)](https://hex.pm/packages/mcp_sse)
-[![License](https://img.shields.io/hexpm/l/mcp_sse.svg)](https://github.com/kEND/mcp_sse/blob/main/LICENSE)
-[![Last Updated](https://img.shields.io/github/last-commit/kEND/mcp_sse.svg)](https://github.com/kEND/mcp_sse/commits/main)
+[![Releases](https://img.shields.io/hexpm/v/mcp_sse.svg)](https://github.com/kEND/mcp_sse/releases)
+[![Documentation](https://img.shields.io/badge/hex-docs-purple.svg)](https://hexdocs.pm/mcp_sse/)
+[![MCP Specification Version](https://img.shields.io/badge/spec-2024--11--05-blue)](https://modelcontextprotocol.io/specification/2024-11-05/index)
+[![Downloads](https://img.shields.io/hexpm/dt/mcp_sse.svg)](https://hex.pm/packages/mcp_sse)
+[![License](https://img.shields.io/badge/licence-MIT-blue.svg)](https://github.com/kEND/mcp_sse/blob/main/LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/kEND/mcp_sse.svg)](https://github.com/kEND/mcp_sse/commits/main)
 
 This library provides a simple implementation of the Model Context Protocol (MCP) over Server-Sent Events (SSE).
 
 For more information about the Model Context Protocol, visit:
 [Model Context Protocol Documentation](https://modelcontextprotocol.io/introduction)
+
+## Features
+
+- Full MCP server implementation
+- SSE connection management
+- JSON-RPC message handling
+- Tool registration and execution
+- Session management
+- Automatic ping/keepalive
+- Error handling and validation
+
+## Create your own MCP server
+
+You must implement the `MCPServer` behaviour.
+
+You only need to implement the required callbacks (`handle_ping/1` and `handle_initialize/2`) and any optional callbacks for features you want to support.
+
+The `use MCPServer` macro provides:
+- Built-in message routing
+- Protocol version validation
+- Default implementations for optional callbacks
+- JSON-RPC error handling
+- Logging
+
+See [`DefaultServer`](https://hexdocs.pm/mcp_sse/MCPServer.html#module-example) for a default implementation of the `MCPServer` behaviour.
 
 ## Installation
 
@@ -24,8 +50,7 @@ config :mime, :types, %{
 }
 
 # Configure the MCP Server
-config :mcp_sse, :mcp_server, MCP.DefaultServer
-# config :mcp_sse, :mcp_server, YourApp.YourMCPServer
+config :mcp_sse, :mcp_server, YourApp.YourMCPServer
 ```
 
 2. Add to your dependencies in `mix.exs`:
@@ -54,6 +79,12 @@ scope "/" do
 end
 ```
 
+4. Run your application:
+
+```bash
+mix phx.server
+```
+
 ### For Plug Applications with Bandit:
 
 1. Create a new Plug application with supervision:
@@ -73,7 +104,7 @@ config :mime, :types, %{
 }
 
 # Configure the MCP Server
-config :mcp_sse, :mcp_server, YourApp.MCPServer
+config :mcp_sse, :mcp_server, YourApp.YourMCPServer
 ```
 
 3. Add dependencies to `mix.exs`:
@@ -152,14 +183,35 @@ defmodule YourApp.Application do
 end
 ```
 
-### Session Management
+6. Run your application:
 
-The MCP SSE server requires a session ID for each connection. The router automatically:
-- Uses an existing session ID from query parameters if provided
-- Generates a new session ID if none exists
-- Ensures all requests to `/sse` and `/message` endpoints have a valid session ID
+```bash
+mix run --no-halt
+```
 
-### Configuration Options
+## Usage
+
+### For Cursor
+
+- Open Cursor Settings
+- Navigate to the MCP tab
+- Click `Add new global MCP server`
+- Fill in the `~/.cursor/mcp.json` with:
+
+```json
+{
+  "mcpServers": {
+    "your-mcp-server": {
+      "url": "http://localhost:4000/sse"
+    }
+  }
+}
+```
+
+- Make sure your server is running
+- Ask Cursor to run one of your tools
+
+## Configuration Options
 
 The Bandit server can be configured with additional options in your application module:
 
@@ -176,45 +228,20 @@ children = [
 ]
 ```
 
-The `use MCPServer` macro provides:
-- Built-in message routing
-- Protocol version validation
-- Default implementations for optional callbacks
-- JSON-RPC error handling
-- Logging
-
-You only need to implement the required callbacks (`handle_ping/1` and `handle_initialize/2`) and any optional callbacks for features you want to support.
-
-## Protocol Specification
-
-For detailed information about the Model Context Protocol, visit:
-[Model Context Protocol Specification](https://modelcontextprotocol.io/specification/2024-11-05/index)
-
-## Features
-
-- Full MCP server implementation
-- SSE connection management
-- JSON-RPC message handling
-- Tool registration and execution
-- Session management
-- Automatic ping/keepalive
-- Error handling and validation
-
-## Contributing
-
-- Fork the repository and clone it
-- Create a new branch in your fork
-- Make your changes and commit them
-- Push the changes to your fork
-- Open a pull request in upstream
-
 ## Quick Demo
 
 To see the MCP server in action:
 
-1. Start the example server in one terminal:
+1. Start a server in one terminal:
 ```bash
+# Our example server
 elixir dev/example_server.exs
+
+# Your Phoenix application
+mix phx.server
+
+# Your Plug application
+mix run --no-halt
 ```
 
 2. In another terminal, run the demo client script:
@@ -229,7 +256,7 @@ The client script will:
 - Call the upcase tool with example input
 - Display the results of each step
 
-This provides a practical demonstration of the MCP protocol flow and server capabilities.
+This provides a practical demonstration of the Model Context Protocol flow and server capabilities.
 
 ## Other Notes
 
@@ -261,14 +288,19 @@ fetch('/message?sessionId=YOUR_SESSION_ID', {
 });
 ```
 
+### Session Management
+
+The MCP SSE server requires a session ID for each connection. The router automatically:
+- Uses an existing session ID from query parameters if provided
+- Generates a new session ID if none exists
+- Ensures all requests to `/sse` and `/message` endpoints have a valid session ID
+
 ### SSE Keepalive
 
 The SSE connection sends periodic keepalive pings to prevent connection timeouts.
-You can configure the ping interval or disable it entirely:
+You can configure the ping interval or disable it entirely in `config/config.exs`:
 
 ```elixir
-# In config/config.exs
-
 # Set custom ping interval (in milliseconds)
 config :mcp_sse, :sse_keepalive_timeout, 30_000  # 30 seconds
 
@@ -355,3 +387,11 @@ end
 ```
 
 For more details on response formatting, see the [MCP Content Types Specification](https://spec.modelcontextprotocol.io/specification/2024-11-05/basic/messages/#responses).
+
+## Contributing
+
+- Fork the repository and clone it
+- Create a new branch in your fork
+- Make your changes and commit them
+- Push the changes to your fork
+- Open a pull request in upstream
