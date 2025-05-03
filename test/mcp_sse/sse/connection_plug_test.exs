@@ -158,6 +158,30 @@ defmodule SSE.ConnectionPlugTest do
 
       assert log =~ "Invalid JSON-RPC message format"
     end
+
+    test "handles error response with 202 status", %{conn: conn, state_pid: state_pid} do
+      # First ensure the state is ready
+      :ok = ConnectionState.handle_initialize(state_pid)
+      :ok = ConnectionState.handle_initialized(state_pid)
+
+      # Create a message that will trigger an error response
+      message = %{
+        "jsonrpc" => "2.0",
+        "method" => "invalid_method",
+        "id" => "1"
+      }
+
+      log =
+        capture_log([level: :warning], fn ->
+          conn = %{conn | body_params: message}
+          response = ConnectionPlug.call(conn, @opts)
+
+          assert response.status == 202
+          assert JSON.decode!(response.resp_body) == %{"status" => "ok"}
+        end)
+
+      assert log =~ "Error handling message:"
+    end
   end
 
   describe "SSE connection" do
@@ -184,6 +208,19 @@ defmodule SSE.ConnectionPlugTest do
 
       # Clean up the connection
       :ets.delete(ConnectionRegistry.table_name(), session_id)
+    end
+
+    test "returns 405 for POST to SSE endpoint" do
+      conn =
+        conn(:post, @sse_path)
+        |> Map.put(:scheme, :http)
+        |> Map.put(:host, "localhost")
+        |> Map.put(:port, 4000)
+
+      response = ConnectionPlug.call(conn, @opts)
+
+      assert response.status == 405
+      assert JSON.decode!(response.resp_body) == %{"error" => "Method not allowed"}
     end
   end
 end

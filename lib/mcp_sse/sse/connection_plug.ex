@@ -50,6 +50,14 @@ defmodule SSE.ConnectionPlug do
 
   # Standard Plug callback
   @doc false
+  def call(%Plug.Conn{request_path: @sse_path, method: "POST"} = conn, _opts) do
+    conn
+    |> put_status(405)
+    |> send_error(405, "Method not allowed")
+  end
+
+  # Standard Plug callback
+  @doc false
   def call(%Plug.Conn{request_path: @sse_path} = conn, _opts) do
     handle_sse(conn)
   end
@@ -158,7 +166,9 @@ defmodule SSE.ConnectionPlug do
                 Logger.warning("Error handling message: #{inspect(error_response)}")
                 # Send error response via SSE to match JSON-RPC 2.0 spec
                 send(sse_pid, {:send_sse_message, error_response})
-                conn |> put_status(400) |> send_json(error_response)
+                # we still reply with 202, because some clients abort the connection
+                # when they receive a non-200 response
+                conn |> put_status(202) |> send_json(%{status: "ok"})
             end
           else
             conn |> put_status(202) |> send_json(%{status: "ok"})
